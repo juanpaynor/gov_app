@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/auth/auth_service.dart';
 
 /// Profile screen - user account and settings
 class ProfileScreen extends StatelessWidget {
@@ -7,6 +9,9 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authService = AuthService();
+    final user = authService.currentUser;
+
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(title: const Text('Profile')),
@@ -43,7 +48,7 @@ class ProfileScreen extends StatelessWidget {
 
                   // Name
                   Text(
-                    'Juan Dela Cruz',
+                    user?.userMetadata?['full_name'] ?? 'User',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
 
@@ -51,7 +56,7 @@ class ProfileScreen extends StatelessWidget {
 
                   // Email
                   Text(
-                    'juan.delacruz@email.com',
+                    user?.email ?? 'No email',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: AppColors.textSecondary,
                     ),
@@ -110,28 +115,34 @@ class ProfileScreen extends StatelessWidget {
 
           // Logout button
           OutlinedButton.icon(
-            onPressed: () {
-              // TODO: Implement logout
-              showDialog(
+            onPressed: () async {
+              final confirmed = await showDialog<bool>(
                 context: context,
                 builder: (context) => AlertDialog(
                   title: const Text('Logout'),
                   content: const Text('Are you sure you want to logout?'),
                   actions: [
                     TextButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () => Navigator.pop(context, false),
                       child: const Text('Cancel'),
                     ),
                     TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        // Perform logout
-                      },
-                      child: const Text('Logout'),
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text(
+                        'Logout',
+                        style: TextStyle(color: AppColors.error),
+                      ),
                     ),
                   ],
                 ),
               );
+
+              if (confirmed == true && context.mounted) {
+                await authService.signOut();
+                if (context.mounted) {
+                  context.go('/login');
+                }
+              }
             },
             icon: const Icon(Icons.logout),
             label: const Text('Logout'),

@@ -20,21 +20,56 @@ class GreetingHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
       children: [
-        Text(
-          '${_getGreeting()}, Roxasnon!',
-          style: Theme.of(
-            context,
-          ).textTheme.displayMedium?.copyWith(color: AppColors.capizBlue),
+        // Logo
+        Container(
+          width: 60,
+          height: 60,
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.capizGold.withOpacity(0.2),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Image.network(
+              'https://hmozgkvakanhxddmficm.supabase.co/storage/v1/object/public/Images_random/HDlogo-pbb5bel39vn69zemn9s1ntn15vgtrbn30kqu8la0rg.png',
+              fit: BoxFit.cover,
+            ),
+          ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          'How can we help you today?',
-          style: Theme.of(
-            context,
-          ).textTheme.bodyLarge?.copyWith(color: AppColors.textSecondary),
+        const SizedBox(width: 16),
+        // Greeting text
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${_getGreeting()}, Roxasnon!',
+                style: Theme.of(
+                  context,
+                ).textTheme.headlineSmall?.copyWith(
+                      color: AppColors.capizBlue,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'How can we help you today?',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+              ),
+            ],
+          ),
         ),
       ],
     );

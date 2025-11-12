@@ -15,10 +15,10 @@ class _NewsCarouselState extends State<NewsCarousel> {
   Timer? _timer;
 
   final List<String> _imageUrls = [
-    'https://picsum.photos/seed/news1/400/200',
-    'https://picsum.photos/seed/news2/400/200',
-    'https://picsum.photos/seed/news3/400/200',
-    'https://picsum.photos/seed/news4/400/200',
+    'https://hmozgkvakanhxddmficm.supabase.co/storage/v1/object/public/Images_random/Roxas-City-Elected-Offcials-2025-2028-2048x1152.jpg',
+    'https://hmozgkvakanhxddmficm.supabase.co/storage/v1/object/public/Images_random/Discussion-with-Commercial-Fishing-Boat-Operators-PCG-and-PNP-Maritime-PoliceDiscussion-with-Commercial-Fishing-Boat-Operators-PCG-and-PNP-Maritime-Police-Banner-Cover-1024x597.jpg',
+    'https://hmozgkvakanhxddmficm.supabase.co/storage/v1/object/public/Images_random/UwanPH-EMERGENCY-HOTLINE-NUMBERS.jpg',
+    'https://hmozgkvakanhxddmficm.supabase.co/storage/v1/object/public/Images_random/roxas_logo.jpg',
   ];
 
   @override

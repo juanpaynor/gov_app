@@ -68,21 +68,28 @@ class _CircularIconButtonState extends State<CircularIconButton>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Circular container with shadow
+            // Circular container with gradient and shadow
             Container(
-              width: 68,
-              height: 68,
+              width: 60,
+              height: 60,
               decoration: BoxDecoration(
-                color: widget.color,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppColors.capizGold,
+                    AppColors.capizGold.withOpacity(0.8),
+                  ],
+                ),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: widget.color.withOpacity(0.3),
+                    color: AppColors.capizGold.withOpacity(0.4),
                     blurRadius: 12,
                     offset: const Offset(0, 6),
                   ),
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withOpacity(0.15),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),
@@ -91,11 +98,11 @@ class _CircularIconButtonState extends State<CircularIconButton>
               child: Icon(
                 widget.icon,
                 color: Colors.white,
-                size: 28,
+                size: 26,
               ),
             ),
             
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             
             // Label
             Text(
@@ -103,9 +110,10 @@ class _CircularIconButtonState extends State<CircularIconButton>
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
+                fontSize: 11,
               ),
               textAlign: TextAlign.center,
-              maxLines: 2,
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           ],
