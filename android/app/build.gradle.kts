@@ -8,7 +8,7 @@ plugins {
 android {
     namespace = "com.example.myapp"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "26.1.10909125"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -35,6 +35,12 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            version = "3.31.6"
         }
     }
 }
