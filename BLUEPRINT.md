@@ -166,41 +166,67 @@ lib/
 - Icons: 24px default size, color-coded by context
 - Spacing: 8, 12, 16, 20, 24, 32px multiples
 
-## Future Integration Points
+## Backend Integration (Supabase)
 
-### Backend (Supabase)
-1. **Authentication**
-   - User signup/login
-   - Session management
-   - Password reset
+### ✅ Completed
+1. **Database Setup**
+   - Supabase project configured
+   - Connection credentials updated
+   - Reports database schema created and deployed
 
-2. **Reports**
-   - Submit report with photo upload
-   - Track report status
-   - View history
+### 🚧 In Progress
+2. **Reports Feature** (Database Ready)
+   - ✅ Database tables created:
+     - `report_categories` - Admin-configurable categories (6 default categories)
+     - `reports` - Main reports table with status tracking
+     - `report_attachments` - Photo storage integration
+     - `report_comments` - User and admin comments
+     - `report_status_history` - Audit trail for status changes
+   - ✅ Database functions and triggers implemented
+   - ✅ Storage bucket created for report photos
+   - ✅ Initial categories seeded (Public Works, Tricycle Fare, Safety, Environment, Health, Other)
+   - 🚧 Flutter UI implementation pending
+   - 🚧 Admin dashboard (web) pending
+   - [ ] Submit report with photo upload
+   - [ ] Track report status in real-time
+   - [ ] View report history
+   - [ ] Push notifications for status updates
 
-3. **Appointments**
-   - Real-time slot availability
-   - Booking confirmation
-   - Reminders
+### 📋 Planned Features
+3. **Authentication**
+   - [ ] User signup/login with Supabase Auth
+   - [ ] Session management
+   - [ ] Password reset
+   - [ ] Profile management
 
-4. **Announcements**
-   - Real-time updates
-   - Push notifications
-   - Read status tracking
+4. **Appointments**
+   - [ ] Database schema design
+   - [ ] Real-time slot availability
+   - [ ] Booking confirmation
+   - [ ] SMS/Email reminders
+   - [ ] Admin dashboard for appointment management
 
-5. **Hotlines**
-   - Dynamic contact list
-   - Emergency escalation
+5. **Announcements**
+   - [ ] Database schema design
+   - [ ] Real-time updates
+   - [ ] Push notifications
+   - [ ] Read status tracking
+   - [ ] Admin dashboard for posting announcements
+
+6. **Hotlines**
+   - [ ] Dynamic contact list from database
+   - [ ] Emergency escalation workflow
+   - [ ] Call logging
 
 ### Additional Features
-- [ ] Push notifications
-- [ ] Offline support
-- [ ] Multi-language (English/Hiligaynon)
-- [ ] Document upload
-- [ ] Payment integration
-- [ ] Feedback system
-- [ ] Analytics
+- [ ] Push notifications (FCM integration)
+- [ ] Offline support (local caching)
+- [ ] Multi-language (English/Hiligaynon toggle)
+- [ ] Document upload (PDF, images)
+- [ ] Payment integration (GCash, PayMaya)
+- [ ] Feedback/rating system
+- [ ] Analytics dashboard
+- [ ] Admin web dashboard (React/Next.js)
 
 ## Development Guidelines
 
@@ -236,18 +262,70 @@ lib/
 - Verifies app loads with greeting
 - Ready for expanded test coverage
 
-## Next Steps
-1. Set up Supabase backend
-2. Implement authentication
-3. Connect forms to API
-4. Add push notifications
-5. Implement real data models
-6. Add loading states
-7. Handle errors gracefully
-8. Add more comprehensive tests
+## Reports Feature Implementation Plan
+
+### Phase 1: Flutter Integration (Mobile App) - NEXT
+1. Create Dart models for reports data
+2. Set up Supabase client in Flutter
+3. Implement repository/service layer
+4. Build report submission flow
+   - Fetch categories from database
+   - Photo upload to Supabase Storage
+   - Form submission to reports table
+5. Build reports list screen
+   - Fetch user's reports
+   - Display status badges
+   - Real-time status updates
+6. Build report details screen
+   - View full report with attachments
+   - View comments thread
+   - Add follow-up comments
+   - View status history
+
+### Phase 2: Admin Dashboard (Web) - IN PROGRESS
+1. Set up React/Next.js project
+2. Integrate Supabase JavaScript client
+3. Implement admin authentication
+4. Build reports dashboard
+   - List all reports with filters
+   - Search and sort functionality
+   - Real-time updates
+5. Build report details page
+   - Update report status
+   - Assign to staff
+   - Add admin comments
+   - Upload response photos
+6. Build category management
+   - CRUD operations for categories
+   - Reorder categories
+7. Build analytics dashboard
+   - Reports by status/category
+   - Resolution time metrics
+   - Location-based statistics
+
+### Phase 3: Testing & Deployment
+1. Test mobile app with real data
+2. Test admin dashboard workflows
+3. Set up staging environment
+4. User acceptance testing
+5. Production deployment
+6. Monitor and optimize
+
+## Documentation
+
+- **Reports Database Schema**: `REPORTS_DATABASE_SCHEMA.md` - Complete SQL schema for mobile dev team
+- **Web Team Documentation**: `WEB_TEAM_REPORTS_DOCUMENTATION.md` - Supabase integration guide for web developers
+
+## Next Immediate Steps
+1. ✅ Database schema created and deployed
+2. **→ Implement Flutter reports UI** (submit, list, details screens)
+3. Connect Flutter app to Supabase
+4. Test report submission flow
+5. Begin admin dashboard development
+6. Implement remaining features (Auth, Appointments, Announcements)
 
 ---
 
-**Version**: 1.0.0  
-**Last Updated**: November 1, 2025  
-**Status**: Initial build complete, ready for backend integration
+**Version**: 1.1.0  
+**Last Updated**: November 20, 2025  
+**Status**: Reports database ready, Flutter UI implementation in progress
