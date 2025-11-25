@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/theme_provider.dart';
 import '../../../core/auth/auth_service.dart';
+import '../../../core/services/in_app_notification_service.dart';
 
 /// Profile screen - user account and settings
 class ProfileScreen extends StatelessWidget {
@@ -12,8 +15,10 @@ class ProfileScreen extends StatelessWidget {
     final authService = AuthService();
     final user = authService.currentUser;
 
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: theme.colorScheme.background,
       appBar: AppBar(title: const Text('Profile')),
       body: ListView(
         padding: const EdgeInsets.all(20),
@@ -23,7 +28,7 @@ class ProfileScreen extends StatelessWidget {
             elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
-              side: const BorderSide(color: AppColors.gray200),
+              side: BorderSide(color: theme.dividerColor.withOpacity(0.6)),
             ),
             child: Padding(
               padding: const EdgeInsets.all(20),
@@ -37,10 +42,10 @@ class ProfileScreen extends StatelessWidget {
                       color: AppColors.capizBlue.withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.person,
                       size: 40,
-                      color: AppColors.capizBlue,
+                      color: theme.colorScheme.primary,
                     ),
                   ),
 
@@ -49,7 +54,7 @@ class ProfileScreen extends StatelessWidget {
                   // Name
                   Text(
                     user?.userMetadata?['full_name'] ?? 'User',
-                    style: Theme.of(context).textTheme.titleLarge,
+                    style: theme.textTheme.titleLarge,
                   ),
 
                   const SizedBox(height: 4),
@@ -57,8 +62,10 @@ class ProfileScreen extends StatelessWidget {
                   // Email
                   Text(
                     user?.email ?? 'No email',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.textTheme.bodyMedium?.color?.withOpacity(
+                        0.7,
+                      ),
                     ),
                   ),
                 ],
@@ -71,14 +78,16 @@ class ProfileScreen extends StatelessWidget {
           // Settings section
           Text(
             'Settings',
-            style: Theme.of(
-              context,
-            ).textTheme.titleSmall?.copyWith(color: AppColors.textSecondary),
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: theme.textTheme.titleSmall?.color?.withOpacity(0.7),
+            ),
           ),
 
           const SizedBox(height: 12),
 
           // Settings options
+          _ThemeToggleItem(),
+
           _SettingsItem(
             icon: Icons.edit_outlined,
             title: 'Edit Profile',
@@ -138,6 +147,8 @@ class ProfileScreen extends StatelessWidget {
               );
 
               if (confirmed == true && context.mounted) {
+                // Stop notification polling
+                context.read<InAppNotificationService>().stopPolling();
                 await authService.signOut();
                 if (context.mounted) {
                   context.go('/login');
@@ -159,12 +170,42 @@ class ProfileScreen extends StatelessWidget {
           Center(
             child: Text(
               'Version 1.0.0',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: AppColors.textHint),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.textTheme.bodySmall?.color?.withOpacity(0.6),
+              ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ThemeToggleItem extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+
+    return Card(
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Theme.of(context).dividerColor),
+      ),
+      child: ListTile(
+        leading: Icon(
+          isDark ? Icons.dark_mode : Icons.light_mode,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+        title: Text('Dark Mode', style: Theme.of(context).textTheme.titleSmall),
+        trailing: Switch(
+          value: isDark,
+          onChanged: (value) => themeProvider.toggleTheme(),
+          activeColor: Theme.of(context).colorScheme.primary,
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }
@@ -187,19 +228,19 @@ class _SettingsItem extends StatelessWidget {
       elevation: 0,
       margin: const EdgeInsets.only(bottom: 8),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.gray200),
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Theme.of(context).dividerColor),
       ),
       child: ListTile(
-        leading: Icon(icon, color: AppColors.textSecondary),
+        leading: Icon(icon, color: Theme.of(context).iconTheme.color),
         title: Text(title),
-        trailing: const Icon(
+        trailing: Icon(
           Icons.arrow_forward_ios,
           size: 16,
-          color: AppColors.textSecondary,
+          color: Theme.of(context).iconTheme.color,
         ),
         onTap: onTap,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }

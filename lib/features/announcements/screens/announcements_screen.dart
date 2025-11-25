@@ -1,166 +1,392 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/gradient_button.dart';
+import '../../../core/services/supabase_service.dart';
+import '../../../core/services/announcements_repository.dart';
+import '../../../models/announcement.dart';
+import '../../../models/announcement_category.dart';
 
 /// Announcements screen - city news and advisories
-class AnnouncementsScreen extends StatelessWidget {
+class AnnouncementsScreen extends StatefulWidget {
   const AnnouncementsScreen({super.key});
 
-  // Sample announcements data (will be from backend later)
-  static final List<Map<String, dynamic>> _announcements = [
-    {
-      'title': 'City Health Advisory',
-      'content':
-          'Free vaccination program continues at all city health centers. Bring valid ID and vaccination card.',
-      'date': DateTime.now().subtract(const Duration(hours: 2)),
-      'type': 'health',
-    },
-    {
-      'title': 'Road Construction Update',
-      'content':
-          'Main highway repairs ongoing. Expect minor delays. Alternative routes available via Barangay Roads.',
-      'date': DateTime.now().subtract(const Duration(days: 1)),
-      'type': 'infrastructure',
-    },
-    {
-      'title': 'Weather Advisory',
-      'content':
-          'Moderate to heavy rainfall expected this week. Stay alert for possible flooding in low-lying areas.',
-      'date': DateTime.now().subtract(const Duration(days: 2)),
-      'type': 'weather',
-    },
-  ];
+  @override
+  State<AnnouncementsScreen> createState() => _AnnouncementsScreenState();
+}
 
-  IconData _getTypeIcon(String type) {
-    switch (type) {
-      case 'health':
-        return Icons.local_hospital;
-      case 'infrastructure':
-        return Icons.construction;
-      case 'weather':
-        return Icons.cloud;
-      default:
-        return Icons.announcement;
+class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
+  late final AnnouncementsRepository _repository;
+  List<Announcement> _announcements = [];
+  List<AnnouncementCategory> _categories = [];
+  String? _selectedCategoryId;
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _repository = AnnouncementsRepository(supabase);
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final categories = await _repository.getCategories();
+      final announcements = await _repository.getAnnouncements(
+        categoryId: _selectedCategoryId,
+      );
+
+      setState(() {
+        _categories = categories;
+        _announcements = announcements;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = 'Failed to load announcements: $e';
+        _isLoading = false;
+      });
     }
   }
 
-  Color _getTypeColor(String type) {
-    switch (type) {
-      case 'health':
-        return AppColors.success;
-      case 'infrastructure':
-        return AppColors.warning;
-      case 'weather':
-        return AppColors.info;
-      default:
-        return AppColors.capizBlue;
-    }
+  void _filterByCategory(String? categoryId) {
+    setState(() {
+      _selectedCategoryId = categoryId;
+    });
+    _loadData();
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final chipBackground = theme.colorScheme.surface.withOpacity(
+      theme.brightness == Brightness.dark ? 0.7 : 1,
+    );
+    final mutedTextColor = theme.textTheme.bodyMedium?.color?.withOpacity(0.7);
+    final hintColor = theme.textTheme.bodySmall?.color?.withOpacity(0.6);
+
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: theme.colorScheme.background,
       appBar: AppBar(title: const Text('Announcements')),
-      body: _announcements.isEmpty
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.notifications_none,
-                    size: 80,
-                    color: AppColors.textHint,
+                  const Icon(
+                    Icons.error_outline,
+                    size: 48,
+                    color: AppColors.error,
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    'No announcements yet',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Check back later for updates',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
+                  Text(_error!, textAlign: TextAlign.center),
+                  const SizedBox(height: 16),
+                  GradientButton(
+                    onPressed: _loadData,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(Icons.refresh, color: Colors.white),
+                        SizedBox(width: 8),
+                        Text('Retry'),
+                      ],
                     ),
                   ),
                 ],
               ),
             )
-          : ListView.builder(
-              padding: const EdgeInsets.all(20),
-              itemCount: _announcements.length,
-              itemBuilder: (context, index) {
-                final announcement = _announcements[index];
-                final color = _getTypeColor(announcement['type']);
-
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: Card(
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: const BorderSide(color: AppColors.gray200),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Icon and date row
-                          Row(
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: color.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Icon(
-                                  _getTypeIcon(announcement['type']),
-                                  color: color,
-                                  size: 20,
-                                ),
+          : Column(
+              children: [
+                // Category filter chips
+                if (_categories.isNotEmpty)
+                  Container(
+                    height: 60,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      children: [
+                        // "All" chip
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: FilterChip(
+                            label: const Text('All'),
+                            selected: _selectedCategoryId == null,
+                            onSelected: (_) => _filterByCategory(null),
+                            backgroundColor: chipBackground,
+                            selectedColor: AppColors.capizBlue.withOpacity(0.2),
+                          ),
+                        ),
+                        // Category chips
+                        ..._categories.map((category) {
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: FilterChip(
+                              label: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (category.icon != null) ...[
+                                    Text(
+                                      category.icon!,
+                                      style: const TextStyle(fontSize: 14),
+                                    ),
+                                    const SizedBox(width: 4),
+                                  ],
+                                  Flexible(
+                                    child: Text(
+                                      category.name,
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  DateFormat(
-                                    'MMM dd, yyyy • h:mm a',
-                                  ).format(announcement['date']),
-                                  style: Theme.of(context).textTheme.bodySmall,
+                              selected: _selectedCategoryId == category.id,
+                              onSelected: (_) => _filterByCategory(category.id),
+                              backgroundColor: chipBackground,
+                              selectedColor: category.colorValue.withOpacity(
+                                0.2,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ],
+                    ),
+                  ),
+
+                // Announcements list
+                Expanded(
+                  child: _announcements.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.notifications_none,
+                                size: 80,
+                                color: hintColor,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No announcements yet',
+                                style: Theme.of(context).textTheme.titleLarge,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Check back later for updates',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: mutedTextColor,
                                 ),
                               ),
                             ],
                           ),
-
-                          const SizedBox(height: 12),
-
-                          // Title
-                          Text(
-                            announcement['title'],
-                            style: Theme.of(context).textTheme.titleMedium,
+                        )
+                      : RefreshIndicator(
+                          onRefresh: _loadData,
+                          child: ListView.builder(
+                            padding: const EdgeInsets.all(20),
+                            itemCount: _announcements.length,
+                            itemBuilder: (context, index) {
+                              final announcement = _announcements[index];
+                              return _AnnouncementCard(
+                                announcement: announcement,
+                                onTap: () {
+                                  context.push(
+                                    '/announcements/${announcement.id}',
+                                  );
+                                },
+                              );
+                            },
                           ),
+                        ),
+                ),
+              ],
+            ),
+    );
+  }
+}
 
-                          const SizedBox(height: 8),
+class _AnnouncementCard extends StatelessWidget {
+  final Announcement announcement;
+  final VoidCallback onTap;
 
-                          // Content
+  const _AnnouncementCard({required this.announcement, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final mutedTextColor = theme.textTheme.bodyMedium?.color?.withOpacity(0.7);
+    final hintColor = theme.textTheme.bodySmall?.color?.withOpacity(0.6);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: theme.dividerColor.withOpacity(0.6)),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Featured image (if available)
+              if (announcement.featuredImageUrl != null)
+                ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    topRight: Radius.circular(12),
+                  ),
+                  child: Image.network(
+                    announcement.featuredImageUrl!,
+                    height: 180,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        const SizedBox.shrink(),
+                  ),
+                ),
+
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Category badge and date
+                    Row(
+                      children: [
+                        // Category badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: announcement.categoryColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: announcement.categoryColor.withOpacity(
+                                0.3,
+                              ),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                announcement.categoryIcon,
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                announcement.categoryName,
+                                style: Theme.of(context).textTheme.labelSmall
+                                    ?.copyWith(
+                                      color: announcement.categoryColor,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Spacer(),
+
+                        // "New" badge
+                        if (announcement.isNew)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.error,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              'NEW',
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                          ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // Title
+                    Text(
+                      announcement.title,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    // Excerpt
+                    Text(
+                      announcement.excerpt,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: mutedTextColor,
+                        height: 1.5,
+                      ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // Date and author
+                    Row(
+                      children: [
+                        Icon(Icons.calendar_today, size: 14, color: hintColor),
+                        const SizedBox(width: 4),
+                        Text(
+                          announcement.formattedDate,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: hintColor,
+                          ),
+                        ),
+                        if (announcement.viewCount > 0) ...[
+                          const SizedBox(width: 16),
+                          Icon(Icons.visibility, size: 14, color: hintColor),
+                          const SizedBox(width: 4),
                           Text(
-                            announcement['content'],
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: AppColors.textSecondary,
-                                  height: 1.5,
-                                ),
+                            '${announcement.viewCount} views',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: hintColor,
+                            ),
                           ),
                         ],
-                      ),
+                      ],
                     ),
-                  ),
-                );
-              },
-            ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

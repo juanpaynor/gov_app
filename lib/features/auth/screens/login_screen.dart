@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/gradient_button.dart';
 import '../../../core/auth/auth_service.dart';
+import '../../../core/services/in_app_notification_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -38,6 +41,8 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (mounted) {
+        // Start notification polling service
+        context.read<InAppNotificationService>().startPolling();
         context.go('/');
       }
     } catch (e) {
@@ -58,6 +63,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _handleGuestAccess() {
     _authService.continueAsGuest();
+    // Start notification polling for guest users too
+    context.read<InAppNotificationService>().startPolling();
     context.go('/');
   }
 
@@ -112,7 +119,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 24),
                         Text(
                           'MyRoxas',
-                          style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                          style: Theme.of(context).textTheme.displaySmall
+                              ?.copyWith(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -120,9 +128,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 8),
                         Text(
                           'City Government Services',
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                color: Colors.white.withOpacity(0.95),
-                              ),
+                          style: Theme.of(context).textTheme.bodyLarge
+                              ?.copyWith(color: Colors.white.withOpacity(0.95)),
                         ),
                       ],
                     ),
@@ -145,7 +152,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             children: [
                               Text(
                                 'Welcome Back',
-                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                style: Theme.of(context).textTheme.headlineSmall
+                                    ?.copyWith(
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.capizGold,
                                     ),
@@ -206,15 +214,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                 },
                               ),
                               const SizedBox(height: 24),
-                              ElevatedButton(
+                              GradientButton(
                                 onPressed: _isLoading ? null : _handleLogin,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.capizGold,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
                                 ),
                                 child: _isLoading
                                     ? const SizedBox(
@@ -222,7 +225,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                         width: 20,
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2,
-                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                Colors.white,
+                                              ),
                                         ),
                                       )
                                     : const Text(
@@ -238,17 +244,24 @@ class _LoginScreenState extends State<LoginScreen> {
                                 onPressed: () {
                                   context.push('/signup');
                                 },
-                                child: const Text("Don't have an account? Sign Up"),
+                                child: const Text(
+                                  "Don't have an account? Sign Up",
+                                ),
                               ),
                               const SizedBox(height: 16),
                               Row(
                                 children: [
                                   const Expanded(child: Divider()),
                                   Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                    ),
                                     child: Text(
                                       'OR',
-                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
                                             color: AppColors.textSecondary,
                                           ),
                                     ),
@@ -262,15 +275,21 @@ class _LoginScreenState extends State<LoginScreen> {
                                   // TODO: Implement Google Sign-In
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text('Google Sign-In coming soon!'),
+                                      content: Text(
+                                        'Google Sign-In coming soon!',
+                                      ),
                                       backgroundColor: AppColors.info,
                                     ),
                                   );
                                 },
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: AppColors.textPrimary,
-                                  side: const BorderSide(color: AppColors.gray300),
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  side: const BorderSide(
+                                    color: AppColors.gray300,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -293,19 +312,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   FadeInUp(
                     duration: const Duration(milliseconds: 600),
                     delay: const Duration(milliseconds: 400),
-                    child: ElevatedButton(
+                    child: GradientButton(
                       onPressed: _handleGuestAccess,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: AppColors.capizGold,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 48,
-                          vertical: 16,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 4,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 48,
+                        vertical: 16,
                       ),
                       child: const Text(
                         'Continue as Guest',

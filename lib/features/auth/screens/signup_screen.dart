@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/gradient_button.dart';
 import '../../../core/auth/auth_service.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -46,7 +47,9 @@ class _SignupScreenState extends State<SignupScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Account created! Please check your email to verify.'),
+            content: Text(
+              'Account created! Please check your email to verify.',
+            ),
             backgroundColor: AppColors.success,
           ),
         );
@@ -119,7 +122,8 @@ class _SignupScreenState extends State<SignupScreen> {
                         const SizedBox(height: 16),
                         Text(
                           'Create Account',
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          style: Theme.of(context).textTheme.headlineMedium
+                              ?.copyWith(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -228,7 +232,8 @@ class _SignupScreenState extends State<SignupScreen> {
                                     ),
                                     onPressed: () {
                                       setState(() {
-                                        _obscureConfirmPassword = !_obscureConfirmPassword;
+                                        _obscureConfirmPassword =
+                                            !_obscureConfirmPassword;
                                       });
                                     },
                                   ),
@@ -247,15 +252,10 @@ class _SignupScreenState extends State<SignupScreen> {
                                 },
                               ),
                               const SizedBox(height: 24),
-                              ElevatedButton(
+                              GradientButton(
                                 onPressed: _isLoading ? null : _handleSignup,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.capizGold,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
                                 ),
                                 child: _isLoading
                                     ? const SizedBox(
@@ -263,7 +263,10 @@ class _SignupScreenState extends State<SignupScreen> {
                                         width: 20,
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2,
-                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                Colors.white,
+                                              ),
                                         ),
                                       )
                                     : const Text(
@@ -279,7 +282,9 @@ class _SignupScreenState extends State<SignupScreen> {
                                 onPressed: () {
                                   context.go('/login');
                                 },
-                                child: const Text('Already have an account? Sign In'),
+                                child: const Text(
+                                  'Already have an account? Sign In',
+                                ),
                               ),
                             ],
                           ),

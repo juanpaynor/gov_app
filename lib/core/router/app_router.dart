@@ -4,13 +4,17 @@ import '../../features/splash/screens/splash_screen.dart';
 import '../../features/home/screens/home_screen.dart';
 import '../../features/reports/screens/reports_screen.dart';
 import '../../features/reports/screens/new_report_screen.dart';
+import '../../features/reports/screens/report_details_screen.dart';
 import '../../features/appointments/screens/appointments_screen.dart';
 import '../../features/appointments/screens/book_appointment_screen.dart';
+import '../../features/appointments/screens/appointment_details_screen.dart';
 import '../../features/hotlines/screens/hotlines_screen.dart';
 import '../../features/announcements/screens/announcements_screen.dart';
+import '../../features/announcements/screens/announcement_detail_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/signup_screen.dart';
+import '../../features/chat/screens/chat_support_screen.dart';
 import '../navigation/main_scaffold.dart';
 import '../auth/auth_service.dart';
 
@@ -182,6 +186,24 @@ class AppRouter {
 
       // Full-screen routes (outside bottom nav) - protected
       GoRoute(
+        path: '/chat-support',
+        pageBuilder: (context, state) => CustomTransitionPage<void>(
+          key: state.pageKey,
+          child: const ChatSupportScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(0.0, 1.0);
+            const end = Offset.zero;
+            const curve = Curves.easeOutCubic;
+            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: FadeTransition(opacity: animation, child: child),
+            );
+          },
+        ),
+      ),
+
+      GoRoute(
         path: '/reports/new',
         pageBuilder: (context, state) => CustomTransitionPage<void>(
           key: state.pageKey,
@@ -200,6 +222,27 @@ class AppRouter {
       ),
 
       GoRoute(
+        path: '/reports/:id',
+        pageBuilder: (context, state) {
+          final reportId = state.pathParameters['id']!;
+          return CustomTransitionPage<void>(
+            key: state.pageKey,
+            child: ReportDetailsScreen(reportId: reportId),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              const begin = Offset(1.0, 0.0);
+              const end = Offset.zero;
+              const curve = Curves.easeInOutCubic;
+              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              return SlideTransition(
+                position: animation.drive(tween),
+                child: FadeTransition(opacity: animation, child: child),
+              );
+            },
+          );
+        },
+      ),
+
+      GoRoute(
         path: '/appointments/book',
         pageBuilder: (context, state) => CustomTransitionPage<void>(
           key: state.pageKey,
@@ -215,6 +258,48 @@ class AppRouter {
             );
           },
         ),
+      ),
+
+      GoRoute(
+        path: '/appointments/:id',
+        pageBuilder: (context, state) {
+          final appointmentId = state.pathParameters['id']!;
+          return CustomTransitionPage<void>(
+            key: state.pageKey,
+            child: AppointmentDetailsScreen(appointmentId: appointmentId),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              const begin = Offset(1.0, 0.0);
+              const end = Offset.zero;
+              const curve = Curves.easeInOutCubic;
+              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              return SlideTransition(
+                position: animation.drive(tween),
+                child: FadeTransition(opacity: animation, child: child),
+              );
+            },
+          );
+        },
+      ),
+
+      GoRoute(
+        path: '/announcements/:id',
+        pageBuilder: (context, state) {
+          final announcementId = state.pathParameters['id']!;
+          return CustomTransitionPage<void>(
+            key: state.pageKey,
+            child: AnnouncementDetailScreen(announcementId: announcementId),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              const begin = Offset(1.0, 0.0);
+              const end = Offset.zero;
+              const curve = Curves.easeInOutCubic;
+              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              return SlideTransition(
+                position: animation.drive(tween),
+                child: FadeTransition(opacity: animation, child: child),
+              );
+            },
+          );
+        },
       ),
     ],
   );

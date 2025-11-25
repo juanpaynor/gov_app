@@ -1,10 +1,75 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/services/supabase_service.dart';
 
 /// Greeting header widget
 /// Displays a warm, localized greeting based on time of day
-class GreetingHeader extends StatelessWidget {
+class GreetingHeader extends StatefulWidget {
   const GreetingHeader({super.key});
+
+  @override
+  State<GreetingHeader> createState() => _GreetingHeaderState();
+}
+
+class _GreetingHeaderState extends State<GreetingHeader> {
+  String _firstName = 'Roxasnon';
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName();
+  }
+
+  Future<void> _loadUserName() async {
+    final user = supabase.auth.currentUser;
+    if (user == null) {
+      setState(() {
+        _firstName = 'Roxasnon';
+        _isLoading = false;
+      });
+      return;
+    }
+
+    try {
+      // Try to get from user_profiles table first
+      final response = await supabase
+          .from('user_profiles')
+          .select('full_name')
+          .eq('id', user.id)
+          .maybeSingle();
+
+      if (response != null && response['full_name'] != null) {
+        final fullName = response['full_name'] as String;
+        setState(() {
+          _firstName = fullName.split(' ').first;
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // Fallback to user metadata
+      final fullName = user.userMetadata?['full_name'] as String?;
+      if (fullName != null && fullName.isNotEmpty) {
+        setState(() {
+          _firstName = fullName.split(' ').first;
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // Last resort: use default
+      setState(() {
+        _firstName = 'Roxasnon';
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _firstName = 'Roxasnon';
+        _isLoading = false;
+      });
+    }
+  }
 
   String _getGreeting() {
     final hour = DateTime.now().hour;
@@ -20,55 +85,26 @@ class GreetingHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Logo
-        Container(
-          width: 60,
-          height: 60,
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.capizGold.withOpacity(0.2),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: Image.network(
-              'https://hmozgkvakanhxddmficm.supabase.co/storage/v1/object/public/Images_random/HDlogo-pbb5bel39vn69zemn9s1ntn15vgtrbn30kqu8la0rg.png',
-              fit: BoxFit.cover,
-            ),
+        Text(
+          '${_getGreeting()}, $_firstName!',
+          style: theme.textTheme.headlineSmall?.copyWith(
+            color: theme.colorScheme.primary,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(width: 16),
-        // Greeting text
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${_getGreeting()}, Roxasnon!',
-                style: Theme.of(
-                  context,
-                ).textTheme.headlineSmall?.copyWith(
-                      color: AppColors.capizBlue,
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'How can we help you today?',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
-              ),
-            ],
+        const SizedBox(height: 4),
+        Text(
+          'How can we help you today?',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: isDark
+                ? theme.textTheme.bodyMedium?.color?.withOpacity(0.8)
+                : AppColors.textSecondary,
           ),
         ),
       ],

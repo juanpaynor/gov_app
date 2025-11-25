@@ -12,6 +12,11 @@
 .swiftpm/
 migrate_working_dir/
 
+# Documentation and team communication files
+*.md
+!README.md
+!BLUEPRINT.md
+
 # Environment variables
 .env
 

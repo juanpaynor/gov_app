@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 
-/// Circular icon button with shadow and press animation
-/// Modern, bold design with satisfying interactions
+/// Circular icon button with glassmorphism effect
+/// Modern frosted glass design with press animation
 class CircularIconButton extends StatefulWidget {
   final IconData icon;
   final String label;
@@ -33,9 +33,10 @@ class _CircularIconButtonState extends State<CircularIconButton>
       duration: const Duration(milliseconds: 150),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.95,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -73,18 +74,15 @@ class _CircularIconButtonState extends State<CircularIconButton>
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
+                gradient: const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [
-                    AppColors.capizGold,
-                    AppColors.capizGold.withOpacity(0.8),
-                  ],
+                  colors: [AppColors.capizBlue, Color(0xFF2196F3)],
                 ),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.capizGold.withOpacity(0.4),
+                    color: AppColors.capizBlue.withOpacity(0.4),
                     blurRadius: 12,
                     offset: const Offset(0, 6),
                   ),
@@ -95,22 +93,18 @@ class _CircularIconButtonState extends State<CircularIconButton>
                   ),
                 ],
               ),
-              child: Icon(
-                widget.icon,
-                color: Colors.white,
-                size: 26,
-              ),
+              child: Icon(widget.icon, color: Colors.white, size: 26),
             ),
-            
+
             const SizedBox(height: 6),
-            
+
             // Label
             Text(
               widget.label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              style: const TextStyle(
+                fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
-                fontSize: 11,
               ),
               textAlign: TextAlign.center,
               maxLines: 1,

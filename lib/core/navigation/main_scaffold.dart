@@ -32,14 +32,23 @@ class _BottomNavBar extends StatelessWidget {
       currentIndex = 4;
     }
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final backgroundColor =
+        theme.bottomNavigationBarTheme.backgroundColor ??
+        (isDark ? AppColors.surfaceDark : AppColors.surfaceLight);
+    final shadowColor = isDark
+        ? Colors.black.withOpacity(0.4)
+        : AppColors.shadowMedium;
+
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.backgroundWhite,
+        color: backgroundColor,
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowMedium,
-            blurRadius: 8,
-            offset: const Offset(0, -2),
+            color: shadowColor,
+            blurRadius: 12,
+            offset: const Offset(0, -4),
           ),
         ],
       ),
@@ -109,7 +118,18 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isSelected ? AppColors.capizBlue : AppColors.textSecondary;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final Color selectedColor =
+        theme.bottomNavigationBarTheme.selectedItemColor ??
+        theme.colorScheme.primary;
+    final Color unselectedColor =
+        theme.bottomNavigationBarTheme.unselectedItemColor ??
+        (isDark
+            ? theme.textTheme.bodySmall?.color?.withOpacity(0.7) ??
+                  Colors.white70
+            : AppColors.textSecondary);
+    final color = isSelected ? selectedColor : unselectedColor;
 
     return Expanded(
       child: InkWell(

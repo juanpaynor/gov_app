@@ -19,13 +19,13 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-    
+
     // Create pulse animation for the glow effect
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     )..repeat(reverse: true);
-    
+
     _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
@@ -67,7 +67,7 @@ class _SplashScreenState extends State<SplashScreen>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Spacer(flex: 2),
-                
+
                 // Animated Logo with Glow Effect
                 FadeInDown(
                   duration: const Duration(milliseconds: 1200),
@@ -95,8 +95,8 @@ class _SplashScreenState extends State<SplashScreen>
                         child: Container(
                           color: Colors.white,
                           padding: const EdgeInsets.all(8),
-                          child: Image.network(
-                            'https://hmozgkvakanhxddmficm.supabase.co/storage/v1/object/public/Images_random/HDlogo-pbb5bel39vn69zemn9s1ntn15vgtrbn30kqu8la0rg.png',
+                          child: Image.asset(
+                            'assets/images/logo.png',
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return const Icon(
@@ -111,9 +111,9 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 40),
-                
+
                 // App Name with Shimmer Effect
                 FadeInUp(
                   duration: const Duration(milliseconds: 1200),
@@ -132,9 +132,9 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 12),
-                
+
                 // Tagline
                 FadeInUp(
                   duration: const Duration(milliseconds: 1200),
@@ -149,9 +149,9 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                   ),
                 ),
-                
+
                 const Spacer(flex: 2),
-                
+
                 // Loading Indicator with Bounce Effect
                 BounceInUp(
                   duration: const Duration(milliseconds: 1400),
@@ -181,7 +181,7 @@ class _SplashScreenState extends State<SplashScreen>
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(height: 60),
               ],
             ),
