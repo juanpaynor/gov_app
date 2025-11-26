@@ -147,7 +147,6 @@ class _AIChatScreenState extends State<AIChatScreen> {
 
       // Get Gemini API key
       final apiKey = SupabaseConfig.geminiApiKey;
-      print('🔑 Gemini API Key: ${apiKey.substring(0, 10)}...');
 
       // Initialize AI FAQ service with Gemini API key
       print('🤖 Initializing AI FAQ service...');
@@ -265,12 +264,30 @@ class _AIChatScreenState extends State<AIChatScreen> {
         }
       } else {
         print('🤖 Generating AI response...');
-        // Generate AI response with language preference
+
+        // Build conversation history (last 10 messages, excluding system messages)
+        final conversationHistory = _messages
+            .where((m) => !m.isSystem)
+            .toList()
+            .reversed
+            .take(10)
+            .toList()
+            .reversed
+            .map(
+              (m) => {
+                'role': m.isUser ? 'user' : 'assistant',
+                'message': m.text,
+              },
+            )
+            .toList();
+
+        // Generate AI response with language preference and conversation history
         final languageContext = _userLanguage.isNotEmpty
             ? '\n\nIMPORTANT: User prefers $_userLanguage language. Respond primarily in $_userLanguage.'
             : '';
         final aiResponse = await _aiFaqService.generateResponse(
           text + languageContext,
+          conversationHistory: conversationHistory,
         );
         print(
           '✅ AI response received: "${aiResponse.substring(0, aiResponse.length > 50 ? 50 : aiResponse.length)}..."',
@@ -724,204 +741,217 @@ class _AIChatScreenState extends State<AIChatScreen> {
     if (chatService.isConnected &&
         chatService.streamChannel != null &&
         chatService.streamChatClient != null) {
-      return PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (didPop, result) async {
-          if (didPop) return;
-
-          // Show warning dialog before closing
-          final shouldClose = await showDialog<bool>(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Minimize Chat?'),
-              content: const Text(
-                'You have an active conversation with an agent. '
-                'Closing will disconnect you from the chat.\n\n'
-                'To keep the conversation active, use the app normally and return here later.',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Stay in Chat'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  style: TextButton.styleFrom(foregroundColor: Colors.red),
-                  child: const Text('Close Anyway'),
-                ),
-              ],
+      return StreamChat(
+        client: chatService.streamChatClient!,
+        child: StreamChatTheme(
+          data: StreamChatThemeData.light().copyWith(
+            colorTheme: StreamColorTheme.light().copyWith(
+              accentPrimary: AppColors.capizBlue,
             ),
-          );
+          ),
+          child: PopScope(
+            canPop: false,
+            onPopInvokedWithResult: (didPop, result) async {
+              if (didPop) return;
 
-          if (shouldClose == true && context.mounted) {
-            Navigator.of(context).pop();
-          }
-        },
-        child: StreamChat(
-          client: chatService.streamChatClient!,
-          child: StreamChannel(
-            channel: chatService.streamChannel!,
-            child: Scaffold(
-              backgroundColor: widget.isModal
-                  ? Colors.transparent
-                  : Theme.of(context).colorScheme.background,
-              appBar: widget.isModal
-                  ? null
-                  : AppBar(
-                      title: const Text('Chat with Agent'),
-                      backgroundColor: AppColors.capizBlue,
-                      foregroundColor: Colors.white,
-                      actions: [
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          tooltip: 'End Chat Session',
-                          onPressed: _showCloseDialog,
-                        ),
-                      ],
+              // Show warning dialog before closing
+              final shouldClose = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Minimize Chat?'),
+                  content: const Text(
+                    'You have an active conversation with an agent. '
+                    'Closing will disconnect you from the chat.\n\n'
+                    'To keep the conversation active, use the app normally and return here later.',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text('Stay in Chat'),
                     ),
-              body: Column(
-                children: [
-                  // Header for modal
-                  if (widget.isModal)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 16,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            AppColors.capizBlue,
-                            AppColors.capizBlue.withOpacity(0.8),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(
-                              Icons.support_agent,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          const Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Chat with Agent',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  'Live support',
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      style: TextButton.styleFrom(foregroundColor: Colors.red),
+                      child: const Text('Close Anyway'),
+                    ),
+                  ],
+                ),
+              );
+
+              if (shouldClose == true && context.mounted) {
+                Navigator.of(context).pop();
+              }
+            },
+            child: StreamChannel(
+              channel: chatService.streamChannel!,
+              child: Scaffold(
+                backgroundColor: widget.isModal
+                    ? Colors.transparent
+                    : Theme.of(context).colorScheme.background,
+                appBar: widget.isModal
+                    ? null
+                    : AppBar(
+                        title: const Text('Chat with Agent'),
+                        backgroundColor: AppColors.capizBlue,
+                        foregroundColor: Colors.white,
+                        actions: [
                           IconButton(
-                            icon: const Icon(Icons.close, color: Colors.white),
+                            icon: const Icon(Icons.close),
+                            tooltip: 'End Chat Session',
                             onPressed: _showCloseDialog,
                           ),
                         ],
                       ),
-                    ),
-                  // Info banner
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.success.withOpacity(0.1),
-                      border: Border(
-                        bottom: BorderSide(
-                          color: AppColors.success.withOpacity(0.3),
-                          width: 1,
+                body: Column(
+                  children: [
+                    // Header for modal
+                    if (widget.isModal)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 16,
                         ),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.check_circle_outline,
-                          color: AppColors.success,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Connected with support agent. You\'ll get a response shortly.',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                              fontWeight: FontWeight.w500,
-                            ),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColors.capizBlue,
+                              AppColors.capizBlue.withOpacity(0.8),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  // Stream Chat Messages with gray background
-                  Expanded(
-                    child: Container(
-                      color: AppColors.gray50,
-                      child: StreamMessageListView(
-                        showScrollToBottom: true,
-                        messageBuilder:
-                            (context, details, messages, defaultMessage) {
-                              return defaultMessage.copyWith(
-                                showUserAvatar: DisplayWidget.gone,
-                                borderRadiusGeometry: BorderRadius.only(
-                                  topLeft: Radius.circular(
-                                    details.isMyMessage ? 20 : 4,
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.support_agent,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            const Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Chat with Agent',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                  topRight: Radius.circular(
-                                    details.isMyMessage ? 4 : 20,
+                                  Text(
+                                    'Live support',
+                                    style: TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 12,
+                                    ),
                                   ),
-                                  bottomLeft: const Radius.circular(20),
-                                  bottomRight: const Radius.circular(20),
-                                ),
-                                messageTheme: StreamMessageThemeData(
-                                  messageBackgroundColor: details.isMyMessage
-                                      ? AppColors.capizBlue
-                                      : Colors.white,
-                                  messageTextStyle: TextStyle(
-                                    color: details.isMyMessage
-                                        ? Colors.white
-                                        : AppColors.textPrimary,
-                                    fontSize: 15,
-                                    height: 1.4,
-                                  ),
-                                  createdAtStyle: TextStyle(
-                                    color: details.isMyMessage
-                                        ? Colors.white.withOpacity(0.7)
-                                        : AppColors.textSecondary,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              );
-                            },
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                              ),
+                              onPressed: _showCloseDialog,
+                            ),
+                          ],
+                        ),
+                      ),
+                    // Info banner
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.success.withOpacity(0.1),
+                        border: Border(
+                          bottom: BorderSide(
+                            color: AppColors.success.withOpacity(0.3),
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.check_circle_outline,
+                            color: AppColors.success,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Connected with support agent. You\'ll get a response shortly.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  // Stream Chat Input
-                  const StreamMessageInput(),
-                ],
+                    // Stream Chat Messages with gray background
+                    Expanded(
+                      child: Container(
+                        color: AppColors.gray50,
+                        child: StreamMessageListView(
+                          showScrollToBottom: true,
+                          messageBuilder:
+                              (context, details, messages, defaultMessage) {
+                                return defaultMessage.copyWith(
+                                  showUserAvatar: DisplayWidget.gone,
+                                  borderRadiusGeometry: BorderRadius.only(
+                                    topLeft: Radius.circular(
+                                      details.isMyMessage ? 20 : 4,
+                                    ),
+                                    topRight: Radius.circular(
+                                      details.isMyMessage ? 4 : 20,
+                                    ),
+                                    bottomLeft: const Radius.circular(20),
+                                    bottomRight: const Radius.circular(20),
+                                  ),
+                                  messageTheme: StreamMessageThemeData(
+                                    messageBackgroundColor: details.isMyMessage
+                                        ? AppColors.capizBlue
+                                        : Colors.white,
+                                    messageTextStyle: TextStyle(
+                                      color: details.isMyMessage
+                                          ? Colors.white
+                                          : AppColors.textPrimary,
+                                      fontSize: 15,
+                                      height: 1.4,
+                                    ),
+                                    createdAtStyle: TextStyle(
+                                      color: details.isMyMessage
+                                          ? Colors.white.withOpacity(0.7)
+                                          : AppColors.textSecondary,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                );
+                              },
+                        ),
+                      ),
+                    ),
+                    // Stream Chat Input (text only, no extra buttons)
+                    StreamMessageInput(
+                      disableAttachments: true,
+                      actionsBuilder: (context, defaultActions) => [],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -1227,23 +1257,41 @@ class _AIChatScreenState extends State<AIChatScreen> {
         children: [
           if (!message.isUser) ...[
             Container(
-              padding: const EdgeInsets.all(10),
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
-                color: message.isSystem
-                    ? AppColors.info.withOpacity(0.15)
-                    : AppColors.capizGold.withOpacity(0.15),
+                gradient: message.isSystem
+                    ? LinearGradient(
+                        colors: [
+                          AppColors.info,
+                          AppColors.info.withOpacity(0.8),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      )
+                    : LinearGradient(
+                        colors: [
+                          AppColors.capizGold,
+                          AppColors.capizGold.withOpacity(0.8),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: message.isSystem
-                      ? AppColors.info.withOpacity(0.3)
-                      : AppColors.capizGold.withOpacity(0.3),
-                  width: 2,
-                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: message.isSystem
+                        ? AppColors.info.withOpacity(0.3)
+                        : AppColors.capizGold.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Icon(
-                message.isSystem ? Icons.info : Icons.smart_toy,
-                size: 20,
-                color: message.isSystem ? AppColors.info : AppColors.capizGold,
+                message.isSystem ? Icons.info_rounded : Icons.smart_toy_rounded,
+                size: 22,
+                color: Colors.white,
               ),
             ),
             const SizedBox(width: 10),
@@ -1320,23 +1368,31 @@ class _AIChatScreenState extends State<AIChatScreen> {
           if (message.isUser) ...[
             const SizedBox(width: 10),
             Container(
-              padding: const EdgeInsets.all(10),
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    AppColors.capizBlue.withOpacity(0.15),
-                    AppColors.capizBlue.withOpacity(0.1),
+                    AppColors.capizBlue,
+                    AppColors.capizBlue.withOpacity(0.8),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: AppColors.capizBlue.withOpacity(0.3),
-                  width: 2,
-                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.capizBlue.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-              child: Icon(Icons.person, size: 20, color: AppColors.capizBlue),
+              child: const Icon(
+                Icons.person_rounded,
+                size: 22,
+                color: Colors.white,
+              ),
             ),
           ],
         ],
@@ -1370,23 +1426,29 @@ class _AIChatScreenState extends State<AIChatScreen> {
   }
 
   @override
-  void dispose() async {
-    // Clear saved messages if conversation was ended
-    if (_conversationEnded) {
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        final user = Supabase.instance.client.auth.currentUser;
-        if (user != null) {
-          await prefs.remove('chat_messages_${user.id}');
-          print('🗑️ Cleared saved messages on dispose');
-        }
-      } catch (e) {
-        print('⚠️ Error clearing messages on dispose: $e');
-      }
-    }
+  void dispose() {
     _messageController.dispose();
     _scrollController.dispose();
+    
+    // Clear saved messages if conversation was ended (do async work)
+    if (_conversationEnded) {
+      _clearMessagesAsync();
+    }
+    
     super.dispose();
+  }
+  
+  Future<void> _clearMessagesAsync() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user != null) {
+        await prefs.remove('chat_messages_${user.id}');
+        print('🗑️ Cleared saved messages on dispose');
+      }
+    } catch (e) {
+      print('⚠️ Error clearing messages on dispose: $e');
+    }
   }
 }
 
