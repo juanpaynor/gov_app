@@ -1429,15 +1429,15 @@ class _AIChatScreenState extends State<AIChatScreen> {
   void dispose() {
     _messageController.dispose();
     _scrollController.dispose();
-    
+
     // Clear saved messages if conversation was ended (do async work)
     if (_conversationEnded) {
       _clearMessagesAsync();
     }
-    
+
     super.dispose();
   }
-  
+
   Future<void> _clearMessagesAsync() async {
     try {
       final prefs = await SharedPreferences.getInstance();

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:animate_do/animate_do.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:math' as math;
 import '../../../core/theme/app_colors.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -12,25 +11,49 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
+    with TickerProviderStateMixin {
+  late AnimationController _flipController;
+  late AnimationController _floatController;
+  late AnimationController _particleController;
+  late Animation<double> _flipAnimation;
+  late Animation<double> _floatAnimation;
 
   @override
   void initState() {
     super.initState();
 
-    // Create pulse animation for the glow effect
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+    // Logo flip animation
+    _flipController = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    );
+
+    _flipAnimation = Tween<double>(begin: math.pi, end: 0.0).animate(
+      CurvedAnimation(parent: _flipController, curve: Curves.easeOutBack),
+    );
+
+    // Gentle float animation
+    _floatController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
       vsync: this,
     )..repeat(reverse: true);
 
-    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    _floatAnimation = Tween<double>(begin: -8.0, end: 8.0).animate(
+      CurvedAnimation(parent: _floatController, curve: Curves.easeInOut),
     );
 
-    // Navigate to home after 3.5 seconds
+    // Particle animation
+    _particleController = AnimationController(
+      duration: const Duration(milliseconds: 8000),
+      vsync: this,
+    )..repeat();
+
+    // Start logo flip after short delay
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) _flipController.forward();
+    });
+
+    // Navigate to home after 1.5 seconds
     Future.delayed(const Duration(milliseconds: 3500), () {
       if (mounted) {
         context.go('/home');
@@ -40,7 +63,9 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
-    _pulseController.dispose();
+    _flipController.dispose();
+    _floatController.dispose();
+    _particleController.dispose();
     super.dispose();
   }
 
@@ -48,146 +73,132 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.capizGold,
-              AppColors.capizGold.withOpacity(0.8),
-              Colors.white,
-              Colors.white,
-            ],
-            stops: const [0.0, 0.3, 0.7, 1.0],
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Spacer(flex: 2),
+        color: AppColors.capizBlue,
+        child: Stack(
+          children: [
+            // Animated particles
+            ...List.generate(50, (index) {
+              return AnimatedBuilder(
+                animation: _particleController,
+                builder: (context, child) {
+                  final progress =
+                      (_particleController.value + index * 0.02) % 1.0;
+                  final size = 1.5 + (index % 4) * 1.5;
+                  final x =
+                      (index % 7) * 0.14 * MediaQuery.of(context).size.width;
+                  final y = progress * MediaQuery.of(context).size.height;
 
-                // Animated Logo with Glow Effect
-                FadeInDown(
-                  duration: const Duration(milliseconds: 1200),
-                  child: ScaleTransition(
-                    scale: _pulseAnimation,
-                    child: Container(
-                      width: 180,
-                      height: 180,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.capizGold.withOpacity(0.4),
-                            blurRadius: 40,
-                            spreadRadius: 10,
-                          ),
-                          BoxShadow(
-                            color: Colors.white.withOpacity(0.3),
-                            blurRadius: 60,
-                            spreadRadius: 20,
-                          ),
-                        ],
-                      ),
-                      child: ClipOval(
-                        child: Container(
+                  return Positioned(
+                    left: x + math.sin(progress * math.pi * 2) * 30,
+                    top: y,
+                    child: Opacity(
+                      opacity: 0.3 * (1 - progress),
+                      child: Container(
+                        width: size,
+                        height: size,
+                        decoration: BoxDecoration(
                           color: Colors.white,
-                          padding: const EdgeInsets.all(8),
-                          child: Image.asset(
-                            'assets/images/logo.png',
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Icon(
-                                Icons.location_city,
-                                size: 100,
-                                color: AppColors.capizGold,
-                              );
-                            },
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
+            }),
+
+            // Main content
+            SafeArea(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Spacer(flex: 2),
+
+                    // Flipping logo with float
+                    AnimatedBuilder(
+                      animation: Listenable.merge([
+                        _flipAnimation,
+                        _floatAnimation,
+                      ]),
+                      builder: (context, child) {
+                        return Transform.translate(
+                          offset: Offset(0, _floatAnimation.value),
+                          child: Transform(
+                            alignment: Alignment.center,
+                            transform: Matrix4.identity()
+                              ..setEntry(3, 2, 0.001)
+                              ..rotateY(_flipAnimation.value),
+                            child: Image.asset(
+                              'assets/images/logo.png',
+                              width: 240,
+                              height: 240,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Icon(
+                                  Icons.location_city,
+                                  size: 120,
+                                  color: Colors.white,
+                                );
+                              },
+                            ),
                           ),
-                        ),
-                      ),
+                        );
+                      },
                     ),
-                  ),
-                ),
 
-                const SizedBox(height: 40),
+                    const Spacer(flex: 2),
 
-                // App Name with Shimmer Effect
-                FadeInUp(
-                  duration: const Duration(milliseconds: 1200),
-                  delay: const Duration(milliseconds: 300),
-                  child: Shimmer.fromColors(
-                    baseColor: AppColors.capizGold,
-                    highlightColor: Colors.white,
-                    period: const Duration(milliseconds: 2000),
-                    child: const Text(
-                      'MyRoxas',
-                      style: TextStyle(
-                        fontSize: 48,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 2,
-                      ),
+                    // Minimalist loading dots
+                    TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0.0, end: 1.0),
+                      duration: const Duration(milliseconds: 1000),
+                      curve: Curves.easeOut,
+                      builder: (context, value, child) {
+                        return Opacity(opacity: value, child: child);
+                      },
+                      child: _buildLoadingDots(),
                     ),
-                  ),
+
+                    const SizedBox(height: 60),
+                  ],
                 ),
-
-                const SizedBox(height: 12),
-
-                // Tagline
-                FadeInUp(
-                  duration: const Duration(milliseconds: 1200),
-                  delay: const Duration(milliseconds: 600),
-                  child: Text(
-                    'Your City, Your Service',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[700],
-                      letterSpacing: 1,
-                      fontWeight: FontWeight.w300,
-                    ),
-                  ),
-                ),
-
-                const Spacer(flex: 2),
-
-                // Loading Indicator with Bounce Effect
-                BounceInUp(
-                  duration: const Duration(milliseconds: 1400),
-                  delay: const Duration(milliseconds: 900),
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        width: 50,
-                        height: 50,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 3,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            AppColors.capizGold,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        'Loading...',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                          letterSpacing: 2,
-                          fontWeight: FontWeight.w300,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 60),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildLoadingDots() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(3, (index) {
+        return AnimatedBuilder(
+          animation: _particleController,
+          builder: (context, child) {
+            final delay = index * 0.2;
+            final progress = (_particleController.value + delay) % 1.0;
+            final scale = 0.6 + (math.sin(progress * math.pi * 2) * 0.4);
+
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              child: Transform.scale(
+                scale: scale,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: AppColors.capizGold,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      }),
     );
   }
 }

@@ -15,11 +15,11 @@ class StatsCard extends StatefulWidget {
   State<StatsCard> createState() => _StatsCardState();
 }
 
-class _StatsCardState extends State<StatsCard>
-    with SingleTickerProviderStateMixin {
+class _StatsCardState extends State<StatsCard> with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
+  late AnimationController _iconBounceController;
   final _appointmentsRepository = AppointmentsRepository();
   int _reportsCount = 0;
   int _appointmentsCount = 0;
@@ -41,6 +41,10 @@ class _StatsCardState extends State<StatsCard>
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
     );
+    _iconBounceController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    )..repeat(reverse: true);
     _animationController.forward();
     _loadData();
     _startAutoRefresh();
@@ -49,6 +53,7 @@ class _StatsCardState extends State<StatsCard>
   @override
   void dispose() {
     _animationController.dispose();
+    _iconBounceController.dispose();
     _autoRefreshTimer?.cancel();
     super.dispose();
   }
@@ -127,19 +132,25 @@ class _StatsCardState extends State<StatsCard>
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [AppColors.capizBlue, Color(0xFF2196F3)],
+              colors: [AppColors.capizBlue, Color(0xFF1565C0)],
             ),
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: AppColors.capizBlue.withOpacity(0.4),
-                blurRadius: 24,
-                offset: const Offset(0, 12),
+                color: AppColors.capizBlue.withOpacity(0.5),
+                blurRadius: 32,
+                spreadRadius: 4,
+                offset: const Offset(0, 16),
               ),
               BoxShadow(
-                color: Colors.black.withOpacity(0.15),
+                color: Colors.black.withOpacity(0.25),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
+              ),
+              BoxShadow(
+                color: Colors.white.withOpacity(0.05),
                 blurRadius: 8,
-                offset: const Offset(0, 4),
+                offset: const Offset(0, -2),
               ),
             ],
           ),
@@ -252,47 +263,56 @@ class _StatsCardState extends State<StatsCard>
                           child: child,
                         ),
                       ),
-                      child: Row(
-                        key: const ValueKey('stats-row'),
-                        children: [
-                          Expanded(
-                            child: _StatItem(
-                              icon: Icons.report_problem_outlined,
-                              count: _reportsCount,
-                              label: 'Reports',
-                              color: Colors.yellow,
-                              labelColor: Colors.yellow.withOpacity(0.8),
+                      child: SizedBox(
+                        height: 140,
+                        child: Stack(
+                          key: const ValueKey('stats-row'),
+                          children: [
+                            // Diagonal layout with offset positioning
+                            Positioned(
+                              left: 0,
+                              top: 0,
+                              child: _StatItem(
+                                icon: Icons.warning_amber_rounded,
+                                count: _reportsCount,
+                                label: 'Reports',
+                                color: const Color(0xFFFFA726),
+                                accentColor: const Color(0xFFFF9800),
+                                iconBounceAnimation: _iconBounceController,
+                                delay: 0,
+                              ),
                             ),
-                          ),
-                          Container(
-                            width: 1,
-                            height: 40,
-                            color: Colors.yellow.withOpacity(0.3),
-                          ),
-                          Expanded(
-                            child: _StatItem(
-                              icon: Icons.calendar_today_outlined,
-                              count: _appointmentsCount,
-                              label: 'Appointments',
-                              color: Colors.yellow,
-                              labelColor: Colors.yellow.withOpacity(0.8),
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              top: 20,
+                              child: Center(
+                                child: _StatItem(
+                                  icon: Icons.event_rounded,
+                                  count: _appointmentsCount,
+                                  label: 'Appointments',
+                                  color: Colors.white,
+                                  accentColor: const Color(0xFFE3F2FD),
+                                  iconBounceAnimation: _iconBounceController,
+                                  delay: 150,
+                                ),
+                              ),
                             ),
-                          ),
-                          Container(
-                            width: 1,
-                            height: 40,
-                            color: Colors.yellow.withOpacity(0.3),
-                          ),
-                          Expanded(
-                            child: _StatItem(
-                              icon: Icons.check_circle_outline,
-                              count: _resolvedCount,
-                              label: 'Resolved',
-                              color: Colors.yellow,
-                              labelColor: Colors.yellow.withOpacity(0.8),
+                            Positioned(
+                              right: 0,
+                              top: 0,
+                              child: _StatItem(
+                                icon: Icons.check_circle_rounded,
+                                count: _resolvedCount,
+                                label: 'Resolved',
+                                color: const Color(0xFF66BB6A),
+                                accentColor: const Color(0xFF4CAF50),
+                                iconBounceAnimation: _iconBounceController,
+                                delay: 300,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
               const SizedBox(height: 16),
@@ -330,60 +350,169 @@ class _StatsCardState extends State<StatsCard>
   }
 }
 
-class _StatItem extends StatelessWidget {
+class _StatItem extends StatefulWidget {
   final IconData icon;
   final int count;
   final String label;
   final Color color;
-  final Color labelColor;
+  final Color accentColor;
+  final AnimationController iconBounceAnimation;
+  final int delay;
 
   const _StatItem({
     required this.icon,
     required this.count,
     required this.label,
     required this.color,
-    required this.labelColor,
+    required this.accentColor,
+    required this.iconBounceAnimation,
+    required this.delay,
   });
 
   @override
+  State<_StatItem> createState() => _StatItemState();
+}
+
+class _StatItemState extends State<_StatItem>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _hoverController;
+  late Animation<double> _hoverScale;
+  bool _isHovered = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _hoverController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    _hoverScale = Tween<double>(begin: 1.0, end: 1.1).animate(
+      CurvedAnimation(parent: _hoverController, curve: Curves.easeOutBack),
+    );
+  }
+
+  @override
+  void dispose() {
+    _hoverController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(icon, color: color, size: 20),
-        const SizedBox(height: 6),
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          transitionBuilder: (child, animation) {
-            final curved = CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOutBack,
-            );
-            return FadeTransition(
-              opacity: animation,
-              child: ScaleTransition(scale: curved, child: child),
-            );
-          },
-          child: Text(
-            '$count',
-            key: ValueKey<int>(count),
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: color,
+    return GestureDetector(
+      onTapDown: (_) {
+        setState(() => _isHovered = true);
+        _hoverController.forward();
+      },
+      onTapUp: (_) {
+        setState(() => _isHovered = false);
+        _hoverController.reverse();
+      },
+      onTapCancel: () {
+        setState(() => _isHovered = false);
+        _hoverController.reverse();
+      },
+      child: ScaleTransition(
+        scale: _hoverScale,
+        child: Container(
+          width: 100,
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                widget.color.withOpacity(0.15),
+                widget.accentColor.withOpacity(0.08),
+              ],
             ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: widget.color.withOpacity(_isHovered ? 0.5 : 0.3),
+              width: 1.5,
+            ),
+            boxShadow: _isHovered
+                ? [
+                    BoxShadow(
+                      color: widget.color.withOpacity(0.4),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : [],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedBuilder(
+                animation: widget.iconBounceAnimation,
+                builder: (context, child) {
+                  final delayedValue =
+                      (widget.iconBounceAnimation.value - (widget.delay / 1000))
+                          .clamp(0.0, 1.0);
+                  final bounce = Curves.easeInOut.transform(delayedValue);
+                  final offset = (bounce - 0.5) * 8;
+                  return Transform.translate(
+                    offset: Offset(0, -offset),
+                    child: Transform.rotate(
+                      angle: (bounce - 0.5) * 0.1,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: widget.color.withOpacity(0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(widget.icon, color: widget.color, size: 24),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 8),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (child, animation) {
+                  final curved = CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeOutBack,
+                  );
+                  return FadeTransition(
+                    opacity: animation,
+                    child: ScaleTransition(scale: curved, child: child),
+                  );
+                },
+                child: Text(
+                  '${widget.count}',
+                  key: ValueKey<int>(widget.count),
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    color: widget.color,
+                    shadows: [
+                      Shadow(
+                        color: widget.color.withOpacity(0.5),
+                        blurRadius: 8,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                widget.label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: widget.color.withOpacity(0.9),
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            color: labelColor,
-            fontWeight: FontWeight.w600,
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
+      ),
     );
   }
 }

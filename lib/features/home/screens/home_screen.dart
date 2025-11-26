@@ -323,7 +323,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 ),
                                                 const SizedBox(height: 2),
                                                 Text(
-                                                  announcement.content,
+                                                  announcement.excerpt,
                                                   style: theme
                                                       .textTheme
                                                       .bodyMedium,

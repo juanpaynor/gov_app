@@ -27,8 +27,9 @@ class AppRouter {
     initialLocation: '/splash',
     redirect: (context, state) {
       final isLoggedIn = _authService.isLoggedIn;
-      final isLoginRoute = state.matchedLocation == '/login' || 
-                          state.matchedLocation == '/signup';
+      final isLoginRoute =
+          state.matchedLocation == '/login' ||
+          state.matchedLocation == '/signup';
       final isSplashRoute = state.matchedLocation == '/splash';
 
       // Don't redirect splash screen
@@ -37,8 +38,16 @@ class AppRouter {
       }
 
       // Protected routes (require auth)
-      final protectedRoutes = ['/reports', '/appointments', '/reports/new', '/appointments/book', '/profile'];
-      final isProtectedRoute = protectedRoutes.any((route) => state.matchedLocation.startsWith(route));
+      final protectedRoutes = [
+        '/reports',
+        '/appointments',
+        '/reports/new',
+        '/appointments/book',
+        '/profile',
+      ];
+      final isProtectedRoute = protectedRoutes.any(
+        (route) => state.matchedLocation.startsWith(route),
+      );
 
       // If trying to access protected route as guest, redirect to login
       if (isProtectedRoute && !isLoggedIn) {
@@ -72,14 +81,7 @@ class AppRouter {
           key: state.pageKey,
           child: const LoginScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            const begin = Offset(1.0, 0.0);
-            const end = Offset.zero;
-            const curve = Curves.easeInOutCubic;
-            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-            return SlideTransition(
-              position: animation.drive(tween),
-              child: FadeTransition(opacity: animation, child: child),
-            );
+            return FadeTransition(opacity: animation, child: child);
           },
         ),
       ),
@@ -90,14 +92,7 @@ class AppRouter {
           key: state.pageKey,
           child: const SignupScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            const begin = Offset(1.0, 0.0);
-            const end = Offset.zero;
-            const curve = Curves.easeInOutCubic;
-            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-            return SlideTransition(
-              position: animation.drive(tween),
-              child: FadeTransition(opacity: animation, child: child),
-            );
+            return FadeTransition(opacity: animation, child: child);
           },
         ),
       ),
@@ -114,17 +109,21 @@ class AppRouter {
             pageBuilder: (context, state) => CustomTransitionPage<void>(
               key: state.pageKey,
               child: const HomeScreen(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                return FadeTransition(
-                  opacity: animation,
-                  child: ScaleTransition(
-                    scale: Tween<double>(begin: 0.95, end: 1.0).animate(
-                      CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
-                    ),
-                    child: child,
-                  ),
-                );
-              },
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: ScaleTransition(
+                        scale: Tween<double>(begin: 0.95, end: 1.0).animate(
+                          CurvedAnimation(
+                            parent: animation,
+                            curve: Curves.easeOutCubic,
+                          ),
+                        ),
+                        child: child,
+                      ),
+                    );
+                  },
             ),
           ),
 
@@ -133,17 +132,21 @@ class AppRouter {
             pageBuilder: (context, state) => CustomTransitionPage<void>(
               key: state.pageKey,
               child: const HomeScreen(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                return FadeTransition(
-                  opacity: animation,
-                  child: ScaleTransition(
-                    scale: Tween<double>(begin: 0.95, end: 1.0).animate(
-                      CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
-                    ),
-                    child: child,
-                  ),
-                );
-              },
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: ScaleTransition(
+                        scale: Tween<double>(begin: 0.95, end: 1.0).animate(
+                          CurvedAnimation(
+                            parent: animation,
+                            curve: Curves.easeOutCubic,
+                          ),
+                        ),
+                        child: child,
+                      ),
+                    );
+                  },
             ),
           ),
 
@@ -194,7 +197,10 @@ class AppRouter {
             const begin = Offset(0.0, 1.0);
             const end = Offset.zero;
             const curve = Curves.easeOutCubic;
-            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            var tween = Tween(
+              begin: begin,
+              end: end,
+            ).chain(CurveTween(curve: curve));
             return SlideTransition(
               position: animation.drive(tween),
               child: FadeTransition(opacity: animation, child: child),
@@ -212,7 +218,10 @@ class AppRouter {
             const begin = Offset(0.0, 1.0);
             const end = Offset.zero;
             const curve = Curves.easeOutCubic;
-            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            var tween = Tween(
+              begin: begin,
+              end: end,
+            ).chain(CurveTween(curve: curve));
             return SlideTransition(
               position: animation.drive(tween),
               child: FadeTransition(opacity: animation, child: child),
@@ -228,16 +237,20 @@ class AppRouter {
           return CustomTransitionPage<void>(
             key: state.pageKey,
             child: ReportDetailsScreen(reportId: reportId),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              const begin = Offset(1.0, 0.0);
-              const end = Offset.zero;
-              const curve = Curves.easeInOutCubic;
-              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-              return SlideTransition(
-                position: animation.drive(tween),
-                child: FadeTransition(opacity: animation, child: child),
-              );
-            },
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  const begin = Offset(1.0, 0.0);
+                  const end = Offset.zero;
+                  const curve = Curves.easeInOutCubic;
+                  var tween = Tween(
+                    begin: begin,
+                    end: end,
+                  ).chain(CurveTween(curve: curve));
+                  return SlideTransition(
+                    position: animation.drive(tween),
+                    child: FadeTransition(opacity: animation, child: child),
+                  );
+                },
           );
         },
       ),
@@ -251,7 +264,10 @@ class AppRouter {
             const begin = Offset(0.0, 1.0);
             const end = Offset.zero;
             const curve = Curves.easeOutCubic;
-            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            var tween = Tween(
+              begin: begin,
+              end: end,
+            ).chain(CurveTween(curve: curve));
             return SlideTransition(
               position: animation.drive(tween),
               child: FadeTransition(opacity: animation, child: child),
@@ -267,16 +283,20 @@ class AppRouter {
           return CustomTransitionPage<void>(
             key: state.pageKey,
             child: AppointmentDetailsScreen(appointmentId: appointmentId),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              const begin = Offset(1.0, 0.0);
-              const end = Offset.zero;
-              const curve = Curves.easeInOutCubic;
-              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-              return SlideTransition(
-                position: animation.drive(tween),
-                child: FadeTransition(opacity: animation, child: child),
-              );
-            },
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  const begin = Offset(1.0, 0.0);
+                  const end = Offset.zero;
+                  const curve = Curves.easeInOutCubic;
+                  var tween = Tween(
+                    begin: begin,
+                    end: end,
+                  ).chain(CurveTween(curve: curve));
+                  return SlideTransition(
+                    position: animation.drive(tween),
+                    child: FadeTransition(opacity: animation, child: child),
+                  );
+                },
           );
         },
       ),
@@ -288,16 +308,20 @@ class AppRouter {
           return CustomTransitionPage<void>(
             key: state.pageKey,
             child: AnnouncementDetailScreen(announcementId: announcementId),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              const begin = Offset(1.0, 0.0);
-              const end = Offset.zero;
-              const curve = Curves.easeInOutCubic;
-              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-              return SlideTransition(
-                position: animation.drive(tween),
-                child: FadeTransition(opacity: animation, child: child),
-              );
-            },
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  const begin = Offset(1.0, 0.0);
+                  const end = Offset.zero;
+                  const curve = Curves.easeInOutCubic;
+                  var tween = Tween(
+                    begin: begin,
+                    end: end,
+                  ).chain(CurveTween(curve: curve));
+                  return SlideTransition(
+                    position: animation.drive(tween),
+                    child: FadeTransition(opacity: animation, child: child),
+                  );
+                },
           );
         },
       ),

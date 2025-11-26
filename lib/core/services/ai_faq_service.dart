@@ -206,12 +206,12 @@ Your Response (KEEP IT SHORT):
     } catch (e) {
       print('❌ Error generating AI response: $e');
       print('Stack trace: ${StackTrace.current}');
-      
+
       // Check if it's an overload error
       if (e.toString().contains('overloaded') || e.toString().contains('503')) {
         return 'Ayaw! Sorry, I\'m a bit busy right now (too many users). 😅 Try again in a few seconds, or I can connect you to a human agent?';
       }
-      
+
       return 'I apologize for the technical difficulty. Would you like to connect with a human agent for assistance?';
     }
   }
