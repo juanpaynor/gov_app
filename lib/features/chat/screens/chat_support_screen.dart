@@ -12,18 +12,19 @@ class ChatSupportScreen extends StatelessWidget {
       minChildSize: 0.5,
       maxChildSize: 0.95,
       builder: (context, scrollController) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(24),
               topRight: Radius.circular(24),
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black26,
+                color: isDark ? Colors.black45 : Colors.black26,
                 blurRadius: 20,
-                offset: Offset(0, -4),
+                offset: const Offset(0, -4),
               ),
             ],
           ),
@@ -40,9 +41,7 @@ class ChatSupportScreen extends StatelessWidget {
                 ),
               ),
               // Chat screen
-              const Expanded(
-                child: AIChatScreen(isModal: true),
-              ),
+              const Expanded(child: AIChatScreen(isModal: true)),
             ],
           ),
         );

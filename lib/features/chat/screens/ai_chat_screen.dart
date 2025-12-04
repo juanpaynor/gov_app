@@ -329,7 +329,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
       case 'Tagalog':
         return 'Salamat! 🇵🇭 Ako si Niño, at magtanong ka lang kung may kailangan ka. Paano kita matutulungan ngayon?';
       case 'Hiligaynon':
-        return 'Salamat! 🇵🇭 Ako si Niño, kag pamangkot lang kung may kinahanglan ka. Paano ko ikaw matabulangan subong?';
+        return 'Salamat gid! 🇵🇭 Ako si Niño, kag pamangkot lang kung ano ang imo kinahanglan. Paano ko ikaw mabuligan subong?';
       default:
         return 'Great! 🇬🇧 I\'m Niño, and I\'m here to help. Feel free to ask me anything. How can I help you today?';
     }
@@ -650,9 +650,15 @@ class _AIChatScreenState extends State<AIChatScreen> {
         Expanded(
           child: Container(
             decoration: BoxDecoration(
-              color: AppColors.gray50,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.cardDark
+                  : AppColors.gray50,
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: AppColors.gray200),
+              border: Border.all(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.gray700
+                    : AppColors.gray200,
+              ),
             ),
             child: TextField(
               controller: _messageController,
@@ -660,10 +666,20 @@ class _AIChatScreenState extends State<AIChatScreen> {
               textCapitalization: TextCapitalization.sentences,
               autocorrect: false,
               enableSuggestions: false,
-              decoration: const InputDecoration(
+              style: TextStyle(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimaryLight,
+              ),
+              decoration: InputDecoration(
                 hintText: 'Type your message...',
+                hintStyle: TextStyle(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.textHintDark
+                      : AppColors.textHintLight,
+                ),
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(
+                contentPadding: const EdgeInsets.symmetric(
                   horizontal: 20,
                   vertical: 12,
                 ),
@@ -904,7 +920,9 @@ class _AIChatScreenState extends State<AIChatScreen> {
                     // Stream Chat Messages with gray background
                     Expanded(
                       child: Container(
-                        color: AppColors.gray50,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.backgroundDark
+                            : AppColors.gray50,
                         child: StreamMessageListView(
                           showScrollToBottom: true,
                           messageBuilder:
@@ -924,18 +942,27 @@ class _AIChatScreenState extends State<AIChatScreen> {
                                   messageTheme: StreamMessageThemeData(
                                     messageBackgroundColor: details.isMyMessage
                                         ? AppColors.capizBlue
+                                        : Theme.of(context).brightness ==
+                                              Brightness.dark
+                                        ? AppColors.cardDark
                                         : Colors.white,
                                     messageTextStyle: TextStyle(
                                       color: details.isMyMessage
                                           ? Colors.white
-                                          : AppColors.textPrimary,
+                                          : Theme.of(context).brightness ==
+                                                Brightness.dark
+                                          ? AppColors.textPrimaryDark
+                                          : AppColors.textPrimaryLight,
                                       fontSize: 15,
                                       height: 1.4,
                                     ),
                                     createdAtStyle: TextStyle(
                                       color: details.isMyMessage
                                           ? Colors.white.withOpacity(0.7)
-                                          : AppColors.textSecondary,
+                                          : Theme.of(context).brightness ==
+                                                Brightness.dark
+                                          ? AppColors.textSecondaryDark
+                                          : AppColors.textSecondaryLight,
                                       fontSize: 11,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -1103,7 +1130,9 @@ class _AIChatScreenState extends State<AIChatScreen> {
               // Message list
               Expanded(
                 child: Container(
-                  color: AppColors.gray50,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.backgroundDark
+                      : AppColors.gray50,
                   child: ListView.builder(
                     controller: _scrollController,
                     padding: const EdgeInsets.symmetric(
@@ -1121,7 +1150,9 @@ class _AIChatScreenState extends State<AIChatScreen> {
               // Typing indicator
               if (_isTyping)
                 Container(
-                  color: AppColors.gray50,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.backgroundDark
+                      : AppColors.gray50,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 8,
@@ -1134,7 +1165,9 @@ class _AIChatScreenState extends State<AIChatScreen> {
                           vertical: 12,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.cardDark
+                              : Colors.white,
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
@@ -1162,7 +1195,9 @@ class _AIChatScreenState extends State<AIChatScreen> {
               Container(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.surfaceDark
+                      : Colors.white,
                   boxShadow: [
                     BoxShadow(
                       color: AppColors.shadowMedium,
@@ -1181,7 +1216,9 @@ class _AIChatScreenState extends State<AIChatScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.cardDark
+                            : Colors.white,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Column(
@@ -1214,7 +1251,9 @@ class _AIChatScreenState extends State<AIChatScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.cardDark
+                            : Colors.white,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Column(
@@ -1314,6 +1353,8 @@ class _AIChatScreenState extends State<AIChatScreen> {
                     ? null
                     : message.isSystem
                     ? AppColors.info.withOpacity(0.08)
+                    : Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.cardDark
                     : Colors.white,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(message.isUser ? 20 : 4),
@@ -1345,7 +1386,9 @@ class _AIChatScreenState extends State<AIChatScreen> {
                     style: TextStyle(
                       color: message.isUser
                           ? Colors.white
-                          : AppColors.textPrimary,
+                          : Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
                       fontSize: 15,
                       height: 1.4,
                     ),
@@ -1356,7 +1399,9 @@ class _AIChatScreenState extends State<AIChatScreen> {
                     style: TextStyle(
                       color: message.isUser
                           ? Colors.white.withOpacity(0.7)
-                          : AppColors.textSecondary,
+                          : Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
                     ),

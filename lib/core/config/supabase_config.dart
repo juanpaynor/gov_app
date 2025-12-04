@@ -3,15 +3,28 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class SupabaseConfig {
   // Fallback values for web (since .env doesn't work well on web)
-  static const String _webSupabaseUrl =
-      'https://tkgjbddrdrzljfjsgtyl.supabase.co';
-  static const String _webSupabaseAnonKey =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrZ2piZGRyZHJ6bGpmanNndHlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0NTE3OTUsImV4cCI6MjA3OTAyNzc5NX0.eo46eubeYAR_4LR6zUU-7kk4AZOPZSd9DHaFoNEGgUE';
-  static const String _webStreamChatApiKey = '8pggmzbbj58a';
-  static const String _webStreamChatSecret =
-      '2v3xftdbeqpkhbp9edke9ps9k82e2tthyft7zcnzs2yauygs8w62f63dqyzz5cph';
-  static const String _webGeminiApiKey =
-      'AIzaSyDGh2gHnyfU9rjYAS2K7wweD2XQjCeIcm0';
+  // IMPORTANT: For production web builds, use environment variables or Firebase Remote Config
+  // These fallback values should be set during build time, not committed to repo
+  static const String _webSupabaseUrl = String.fromEnvironment(
+    'SUPABASE_URL',
+    defaultValue: '',
+  );
+  static const String _webSupabaseAnonKey = String.fromEnvironment(
+    'SUPABASE_ANON_KEY',
+    defaultValue: '',
+  );
+  static const String _webStreamChatApiKey = String.fromEnvironment(
+    'STREAM_CHAT_API_KEY',
+    defaultValue: '',
+  );
+  static const String _webStreamChatSecret = String.fromEnvironment(
+    'STREAM_CHAT_SECRET',
+    defaultValue: '',
+  );
+  static const String _webGeminiApiKey = String.fromEnvironment(
+    'GEMINI_API_KEY',
+    defaultValue: '',
+  );
 
   static String get supabaseUrl => kIsWeb
       ? _webSupabaseUrl

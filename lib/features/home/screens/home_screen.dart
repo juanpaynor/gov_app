@@ -32,6 +32,110 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadRecentAnnouncements();
   }
 
+  void _showComingSoonModal(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Container(
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.cardDark
+                : Colors.white,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Icon
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.capizGold.withOpacity(0.2),
+                      AppColors.capizGold.withOpacity(0.1),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.schedule_outlined,
+                  size: 64,
+                  color: AppColors.capizGold,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Title
+              Text(
+                'Coming Soon!',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Message
+              Text(
+                'We apologize for the inconvenience.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'This feature is not available at the moment as we set up our City Hall for appointments. Please check back soon!',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.5,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.capizGold,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    'Got it',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _loadRecentAnnouncements() async {
     try {
       final announcements = await _repository.getAnnouncements(limit: 3);
@@ -171,7 +275,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           icon: Icons.calendar_today,
                           label: 'Appoint',
                           color: AppColors.capizGold,
-                          onTap: () => context.push('/appointments/book'),
+                          onTap: () => _showComingSoonModal(context),
                         ),
                       ),
                       FadeInUp(

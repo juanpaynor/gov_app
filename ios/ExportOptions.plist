@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Method: app-store, ad-hoc, enterprise, development -->
+	<key>method</key>
+	<string>app-store</string>
+	
+	<!-- Your Team ID from Apple Developer portal -->
+	<key>teamID</key>
+	<string>YOUR_TEAM_ID</string>
+	
+	<!-- Upload symbols for crash reports -->
+	<key>uploadSymbols</key>
+	<true/>
+	
+	<!-- Upload bitcode (optional, usually true for App Store) -->
+	<key>uploadBitcode</key>
+	<false/>
+	
+	<!-- Compile bitcode -->
+	<key>compileBitcode</key>
+	<true/>
+	
+	<!-- Code signing configuration -->
+	<key>signingStyle</key>
+	<string>automatic</string>
+	
+	<!-- Provisioning profiles (if using manual signing) -->
+	<!-- 
+	<key>provisioningProfiles</key>
+	<dict>
+		<key>com.roxascity.myroxas</key>
+		<string>YOUR_PROVISIONING_PROFILE_NAME</string>
+	</dict>
+	-->
+	
+	<!-- Enable on-demand resources -->
+	<key>onDemandResourcesAssetPacksBaseURL</key>
+	<string></string>
+	
+	<!-- Thinning for specific devices (optional) -->
+	<!-- <key>thinning</key>
+	<string>&lt;thin-for-all-variants&gt;</string> -->
+	
+	<!-- Strip Swift symbols -->
+	<key>stripSwiftSymbols</key>
+	<true/>
+</dict>
+</plist>
